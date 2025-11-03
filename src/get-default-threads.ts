@@ -8,4 +8,3 @@ export function getDefaultThreads(): number {
 
     return Math.max(MIN_THREADS, cpuCount - 1);
 }
-

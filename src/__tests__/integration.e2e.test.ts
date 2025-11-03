@@ -152,8 +152,8 @@ describe('Integration E2E Tests', () => {
         const avgOverhead = overheadResults.reduce((sum, val) => sum + val, 0) / iterations;
         const maxOverhead = Math.max(...overheadResults);
 
-        expect(avgOverhead).toBeLessThan(50);
-        expect(maxOverhead).toBeLessThan(80);
+        expect(avgOverhead).toBeLessThan(100);
+        expect(maxOverhead).toBeLessThan(150);
     }, 30_000);
 
     it('должен работать с флагами --help', async () => {

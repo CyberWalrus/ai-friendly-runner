@@ -1,6 +1,6 @@
 {
     "name": "ai-friendly-runner",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Parallel npm script runner with AI-optimized output format",
     "bin": {
         "air": "./dist/index.js",
