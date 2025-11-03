@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<architecture>
+	<architecture_metadata version="1" language="ts">
+		<architecture_type>
+			simple_cli
+		</architecture_type>
+		<scope>
+			full
+		</scope>
+		<package_name>
+			ai-friendly-runner
+		</package_name>
+		<source_root>
+			src
+		</source_root>
+		<workspace_path>
+			/Users/andreypakhomov/github.com/ai-friendly-runner
+		</workspace_path>
+		<entrypoints>
+			<entrypoint path="src/index.ts" purpose="CLI entry point" />
+		</entrypoints>
+		<ruleset>
+			ai-friendly-runner-2025-11
+		</ruleset>
+	</architecture_metadata>
+	<layers>
+		<layer name="model" purpose="Type definitions" order="10">
+			<unit path="src/types.ts" purpose="CommandResult and RunnerOptions types" exports="CommandResult, RunnerOptions" />
+		</layer>
+		<layer name="lib" purpose="Core functions" order="20">
+			<unit path="src/exec-command.ts" purpose="Execute single npm command" exports="execCommand" />
+			<unit path="src/run-commands.ts" purpose="Run multiple commands in parallel" exports="runCommands" />
+			<unit path="src/reporter.ts" purpose="Format and print results" exports="printReport" />
+			<unit path="src/run.ts" purpose="Main runner function" exports="run" />
+		</layer>
+		<layer name="cli" purpose="Command line interface" order="30">
+			<unit path="src/index.ts" purpose="CLI entry point with shebang" exports="none" />
+		</layer>
+	</layers>
+	<tests_directory path="src/__tests__">
+		<test path="src/__tests__/exec-command.test.ts" type="unit" covers="src/exec-command.ts" />
+		<test path="src/__tests__/run-commands.test.ts" type="unit" covers="src/run-commands.ts" />
+		<test path="src/__tests__/reporter.test.ts" type="unit" covers="src/reporter.ts" purpose="Tests for XML tags, command counter, total time in output" />
+		<test path="src/__tests__/integration.e2e.test.ts" type="e2e" covers="src/index.ts" purpose="E2E tests for CLI output with XML tags and timing" />
+	</tests_directory>
+	<sections>
+		<package_root>
+			<source_directory name="src">
+				<entrypoint name="index.ts" purpose="CLI entry point с shebang" />
+				<file name="types.ts" role="types" purpose="Типы CommandResult и RunnerOptions" />
+				<file name="exec-command.ts" role="function" purpose="Выполнение одной npm команды" />
+				<file name="run-commands.ts" role="function" purpose="Параллельный запуск команд через Promise.all" />
+				<file name="reporter.ts" role="function" purpose="Форматирование и вывод отчета" />
+				<file name="run.ts" role="function" purpose="Главная функция запуска проверок" />
+				<directory name="__tests__">
+					<test name="exec-command.test.ts" role="unit_test" purpose="Unit-тесты для execCommand" />
+					<test name="run-commands.test.ts" role="unit_test" purpose="Unit-тесты для runCommands" />
+					<test name="reporter.test.ts" role="unit_test" purpose="Unit-тесты для printReport с XML тегами и Total time" />
+					<test name="integration.e2e.test.ts" role="e2e_test" purpose="E2E тесты CLI с проверкой XML тегов, счетчика и timing" />
+				</directory>
+			</source_directory>
+		</package_root>
+	</sections>
+</architecture>
