@@ -22,6 +22,5 @@ export default defineConfig({
         exclude: ['node_modules', 'dist'],
         globals: true,
         include: process.env.TEST_TYPE === 'e2e' ? ['src/**/*.e2e.test.ts'] : ['src/**/*.test.ts'],
-        setupFiles: ['src/test-setup.ts'],
     },
 });

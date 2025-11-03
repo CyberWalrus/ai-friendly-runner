@@ -1,11 +1,11 @@
 import { defineConfig } from 'tsup';
 
-/** Конфигурация сборки tsup для CLI-инструмента cursor-rules */
+/** Конфигурация сборки tsup для CLI-инструмента ai-friendly-runner */
 export default defineConfig({
     bundle: true,
     clean: true,
     dts: false,
-    entry: ['src/cli.ts'],
+    entry: ['src/index.ts'],
     esbuildOptions(options) {
         return {
             ...options,
@@ -15,7 +15,11 @@ export default defineConfig({
         };
     },
     format: ['esm'],
+    minify: true,
+    noExternal: ['picocolors', 'p-limit', 'yocto-queue'],
     outDir: 'dist',
     sourcemap: false,
+    splitting: false,
     target: 'node20',
+    treeshake: true,
 });
