@@ -18,7 +18,7 @@ export async function execCommand(command: string, flags: Flags): Promise<Comman
         const startTime = Date.now();
         const prefix = `[${command.slice(0, 15).padEnd(15)}]: `;
 
-        return new Promise((resolve) => {
+        return new Promise<CommandResult>((resolve, reject) => {
             const child = spawn(fullCommand, {
                 shell: true,
                 stdio: ['inherit', 'pipe', 'pipe'],
@@ -45,6 +45,10 @@ export async function execCommand(command: string, flags: Flags): Promise<Comman
                 });
             }
 
+            child.on('error', (error) => {
+                reject(error);
+            });
+
             child.on('close', (code) => {
                 resolve({
                     command,
@@ -60,7 +64,9 @@ export async function execCommand(command: string, flags: Flags): Promise<Comman
     const startTime = Date.now();
 
     try {
-        const { stdout, stderr } = await execAsync(fullCommand);
+        const { stdout, stderr } = await execAsync(fullCommand, {
+            shell: true,
+        });
 
         return {
             command,

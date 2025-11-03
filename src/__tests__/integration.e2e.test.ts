@@ -1,4 +1,4 @@
-import { exec } from 'node:child_process';
+import { exec, spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -117,11 +117,37 @@ describe('Integration E2E Tests', () => {
     }, 15_000);
 
     it('должен выводить общее время выполнения', async () => {
-        const { stdout } = await execAsync('node dist/index.js "test:pass-fast" "test:pass-slow"', {
-            cwd: rootDir,
+        const result = await new Promise<{ code: number | null; stderr: string; stdout: string }>((resolve, reject) => {
+            const child = spawn('node', ['dist/index.js', 'test:pass-fast', 'test:pass-slow'], {
+                cwd: rootDir,
+                shell: false,
+            });
+
+            let stdout = '';
+            let stderr = '';
+
+            if (child.stdout !== null) {
+                child.stdout.on('data', (data) => {
+                    stdout += data.toString();
+                });
+            }
+
+            if (child.stderr !== null) {
+                child.stderr.on('data', (data) => {
+                    stderr += data.toString();
+                });
+            }
+
+            child.on('close', (code) => {
+                resolve({ code, stderr, stdout });
+            });
+
+            child.on('error', (error) => {
+                reject(error);
+            });
         });
 
-        expect(stdout).toMatch(/Total time: \d+ms/);
+        expect(result.stdout).toMatch(/Total time: \d+ms/);
     }, 15_000);
 
     it('должен иметь минимальные накладные расходы при запуске команд', async () => {
