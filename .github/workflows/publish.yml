@@ -1,0 +1,167 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run ESLint
+        run: yarn lint:eslint
+
+      - name: Run TypeScript check
+        run: yarn lint:ts
+
+      - name: Run Knip
+        run: yarn lint:knip
+
+      - name: Run unit tests
+        run: yarn lint:test-unit
+
+      - name: Run e2e tests
+        run: yarn lint:test-e2e
+
+      - name: Build package
+        run: yarn build
+
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run ESLint
+        run: yarn lint:eslint
+
+      - name: Run TypeScript check
+        run: yarn lint:ts
+
+      - name: Run Knip
+        run: yarn lint:knip
+
+      - name: Run unit tests
+        run: yarn lint:test-unit
+
+      - name: Run e2e tests
+        run: yarn lint:test-e2e
+
+      - name: Build package
+        run: yarn build
+
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run ESLint
+        run: yarn lint:eslint
+
+      - name: Run TypeScript check
+        run: yarn lint:ts
+
+      - name: Run Knip
+        run: yarn lint:knip
+
+      - name: Run unit tests
+        run: yarn lint:test-unit
+
+      - name: Run e2e tests
+        run: yarn lint:test-e2e
+
+      - name: Build package
+        run: yarn build
+
+  # Проверяем версию и публикуем только если нужно
+  publish:
+    needs: [test, test-windows, test-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Check if version exists in npm
+        id: check
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          echo "Checking if $PACKAGE_NAME@$VERSION exists in npm..."
+
+          if npm view $PACKAGE_NAME@$VERSION version >/dev/null 2>&1; then
+            echo "Version $VERSION already exists - skipping publish"
+            echo "should-publish=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version $VERSION not found - will publish"
+            echo "should-publish=true" >> $GITHUB_OUTPUT
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        if: steps.check.outputs.should-publish == 'true'
+        run: yarn install --frozen-lockfile
+
+      - name: Build package
+        if: steps.check.outputs.should-publish == 'true'
+        run: yarn build
+
+      - name: Publish to npm
+        if: steps.check.outputs.should-publish == 'true'
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.should-publish == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.check.outputs.version }}
+          name: Release v${{ steps.check.outputs.version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
