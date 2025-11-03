@@ -1,0 +1,19 @@
+{
+    "MD007": {
+        "indent": 4
+    },
+    "MD013": {
+        "heading_line_length": 580,
+        "line_length": 580
+    },
+    "MD024": {
+        "siblings_only": true
+    },
+    "MD033": false,
+    "MD046": false,
+    "MD025": false,
+    "MD026": false,
+    "MD036": false,
+    "MD040": false,
+    "MD053": false
+}

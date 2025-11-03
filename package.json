@@ -1,0 +1,62 @@
+{
+    "name": "ai-friendly-runner",
+    "version": "0.1.7",
+    "description": "CLI tool for managing .cursor rules in projects",
+    "bin": {
+        "ai-friendly-runner": "./dist/cli.js"
+    },
+    "type": "module",
+    "scripts": {
+        "build": "tsup",
+        "start": "node --import tsx src/cli.ts",
+        "test": "cross-env NODE_ENV=test vitest --run",
+        "test:unit": "cross-env NODE_ENV=test vitest --run --exclude '**/*.e2e.test.ts'",
+        "test:e2e": "cross-env NODE_ENV=test TEST_TYPE=e2e vitest --run",
+        "test:coverage": "cross-env NODE_ENV=test vitest --coverage",
+        "typecheck": "tsc --noEmit",
+        "lint": "yarn eslint --fix --report-unused-disable-directives-severity off src && yarn typecheck",
+        "lint:unused": "yarn eslint --config eslint.unused-imports.config.ts 'src/**/*.ts'",
+        "quality:check": "tsx ./scripts/quality-check.ts lint lint:unused typecheck test:unit test:e2e"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:CyberWalrus/ai-friendly-runner.git"
+    },
+    "keywords": [
+        "cursor",
+        "ai",
+        "rules",
+        "cli",
+        "cursor-ai",
+        "configuration",
+        "management"
+    ],
+    "author": "Пахомов Андрей Николаевич <andrey.pahomov@ligastavok.ru>",
+    "license": "MIT",
+    "dependencies": {
+        "citty": "0.1.6",
+        "picocolors": "1.1.0"
+    },
+    "devDependencies": {
+        "@types/node": "24.9.2",
+        "cross-env": "10.1.0",
+        "eslint-plugin-import": "2.32.0",
+        "eslint-plugin-unused-imports": "4.3.0",
+        "eslint-walrus-config": "1.1.0",
+        "tsup": "8.5.0",
+        "tsx": "4.20.6",
+        "typescript": "5.9.3",
+        "vitest": "4.0.6"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "files": [
+        "dist",
+        ".cursor",
+        "user-rules"
+    ],
+    "publishConfig": {
+        "access": "public"
+    }
+}
