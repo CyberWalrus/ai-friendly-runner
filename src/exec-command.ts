@@ -1,4 +1,6 @@
+import type { ExecOptionsWithStringEncoding } from 'node:child_process';
 import { exec, spawn } from 'node:child_process';
+import { platform } from 'node:os';
 import { createInterface } from 'node:readline';
 import { promisify } from 'node:util';
 
@@ -64,9 +66,14 @@ export async function execCommand(command: string, flags: Flags): Promise<Comman
     const startTime = Date.now();
 
     try {
-        const { stdout, stderr } = await execAsync(fullCommand, {
-            shell: true,
-        });
+        const shellPath = platform() === 'win32' ? process.env.COMSPEC || 'cmd.exe' : process.env.SHELL || '/bin/sh';
+
+        const options: ExecOptionsWithStringEncoding = {
+            encoding: 'utf8',
+            shell: shellPath,
+        };
+
+        const { stdout, stderr } = await execAsync(fullCommand, options);
 
         return {
             command,

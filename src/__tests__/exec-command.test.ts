@@ -34,7 +34,13 @@ describe('execCommand', () => {
         expect(result.stdout).toBe('test output');
         expect(result.stderr).toBe('');
         expect(result.duration).toBeGreaterThanOrEqual(0);
-        expect(mockedExecAsync).toHaveBeenCalledWith('npm run test');
+        expect(mockedExecAsync).toHaveBeenCalledWith(
+            'npm run test',
+            expect.objectContaining({
+                encoding: 'utf8',
+                shell: expect.any(String),
+            }),
+        );
     });
 
     it('должен обработать ошибку команды', async () => {
