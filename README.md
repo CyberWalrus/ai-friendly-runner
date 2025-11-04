@@ -1,329 +1,113 @@
 # ai-friendly-runner
 
-Parallel npm script runner with AI-optimized output format.
+⚡ Fast parallel npm script runner with AI-optimized output.
 
-## Description
-
-`ai-friendly-runner` is a CLI tool that runs multiple npm scripts in parallel with structured, color-coded output optimized for both AI and human readability. It measures execution time, provides clear success/failure status for each command, and supports flexible output formatting with XML tags for AI consumption.
+Go-based CLI tool for parallel command execution with colored output, XML tags for AI parsing, and minimal overhead (~10-50ms startup).
 
 ## Installation
 
-### Global Installation
-
 ```bash
 npm install -g ai-friendly-runner
-# or
-yarn global add ai-friendly-runner
-```
-
-### Local Installation (Recommended for Projects)
-
-```bash
+# or locally
 npm install --save-dev ai-friendly-runner
-# or
-yarn add -D ai-friendly-runner
 ```
 
 ## Quick Start
 
-After installation, you can use the `air` or `ai-runner` command:
-
 ```bash
-air lint test typecheck
+# Run multiple commands in parallel
+aifr lint test build
+
+# With custom options
+aifr --threads 4 --output full lint test
+
+# Auto-detect npm scripts vs direct commands
+aifr test                    # → npm run test (if exists in package.json)
+aifr "go fmt ./..."          # → go fmt ./... (direct command)
 ```
 
-## Usage
-
-### Basic Usage
+## Options
 
 ```bash
-# Run multiple npm scripts in parallel
-air lint test build
-
-# Using full command name
-ai-runner lint:ts lint:eslint test:unit
+aifr [options] <command1> <command2> ...
 ```
 
-### Command-Line Arguments
+| Option | Description | Example |
+|--------|-------------|---------|
+| `-o, --output <format>` | Output format: `none`, `errors` (default), `full` | `aifr -o full test` |
+| `-n, --threads <num>` | Number of parallel threads (default: CPU cores - 1) | `aifr -n 4 lint test` |
+| `-w, --stream` | Stream output in real-time | `aifr --stream build` |
+| `-t, --no-time` | Hide execution time | `aifr --no-time test` |
+| `-s, --no-summary` | Hide final summary | `aifr --no-summary lint` |
+| `-h, --help` | Show help | `aifr --help` |
 
-The tool accepts npm script names (without `npm run` prefix) or direct commands:
-
-```bash
-# Simple npm scripts (no quotes needed)
-air lint test build
-
-# Commands with spaces or flags (use quotes)
-air "lint:ts" "yarn tsc --noEmit"
-air "npm run build" "npm test"
-air "node -e 'console.log(123)'" "test:unit"
-```
-
-## CLI Options
-
-### `-h, --help`
-
-Show help message with usage information.
+## Usage Examples
 
 ```bash
-air --help
-```
+# CI/CD: run all checks in parallel
+aifr lint test build
 
-### `-t, --no-time`
+# Limit parallel threads
+aifr --threads 2 test:unit test:e2e
 
-Hide execution time from output.
+# Stream output for long-running commands
+aifr --stream "go test ./..." build
 
-```bash
-air --no-time lint test
-```
+# Silent mode (exit code only)
+aifr --output none lint test
 
-### `-s, --no-summary`
-
-Hide final summary (pass/fail count).
-
-```bash
-air --no-summary lint test
-```
-
-### `-o, --output <format>`
-
-Set output format. Available values:
-
-- `none` - No output (only exit code)
-- `errors` - Show only failed commands (default)
-- `full` - Show all commands with full output
-
-```bash
-air --output full lint test
-air -o none lint test  # Silent mode
-```
-
-### `-w, --stream`
-
-Enable streaming output with command prefixes. Useful for long-running commands where you want to see output in real-time.
-
-```bash
-air --stream build test
-```
-
-### `-n, --threads <number>`
-
-Set the number of parallel threads. Default is `CPU cores - 1` (minimum 1).
-
-```bash
-air --threads 4 lint test build
-air -n 2 lint test
+# Full output with XML tags for AI
+aifr --output full lint test build
 ```
 
 ## Output Format
 
-### Success Case
+**Default (errors):**
 
 ```
-Running: lint, test
-
 ✅ lint (142ms)
 ✅ test (823ms)
-
 Summary: 2/2 passed
-Total time: 823ms
 ```
 
-### Failure Case
+**With errors:**
 
 ```
-Running: lint, test, typecheck
-
 ✅ lint (156ms)
-✅ test (891ms)
-❌ typecheck (203ms)
-
-Summary: 2/3 passed
-Total time: 891ms
-
-❌ typecheck:
-src/utils/helper.ts:15:3 - error TS2322
-Type 'number' is not assignable to type 'string'.
-```
-
-### AI-Optimized Format (with `--output full`)
-
-When using `--output full`, the output includes XML tags for better AI parsing:
-
-```
-<lint>
-✅ lint (142ms)
-[stdout output]
-</lint>
+❌ test (203ms)
 
 <test>
-✅ test (823ms)
-[stdout output]
+Error: test failed
 </test>
 ```
 
-Failed commands are automatically wrapped in XML tags regardless of output format:
+**AI-optimized (--output full):**
 
-```
-❌ typecheck (203ms)
-
-<typecheck>
-❌ typecheck:
-[error output]
-</typecheck>
-```
-
-## Programmatic Usage
-
-You can also use the tool programmatically:
-
-```typescript
-import { run } from 'ai-friendly-runner';
-
-// Run commands programmatically
-await run({
-  commands: ['lint', 'test', 'typecheck'],
-  flags: {
-    output: 'errors',
-    showSummary: true,
-    showTime: true,
-    stream: false,
-    threads: 4,
-  },
-});
-```
+- All commands wrapped in XML tags `<command>...</command>`
+- Easy for AI parsing and automated analysis
 
 ## Features
 
-- **Parallel Execution**: Runs all commands simultaneously using configurable thread pool
-- **AI-Optimized Output**: Structured format with XML tags and clear status indicators (✅/❌)
-- **Execution Time**: Displays duration for each command in milliseconds
-- **Error Details**: Shows stderr and stdout only for failed commands (configurable)
-- **Streaming Mode**: Real-time output with command prefixes
-- **Exit Codes**: Returns 0 on success, 1 on failure (CI/CD friendly)
-- **TypeScript**: Fully typed with strict mode enabled
-- **Flexible Output**: Multiple output formats (none, errors, full)
-- **Thread Control**: Configurable parallel execution limits
+- ⚡ **Parallel execution** with thread control
+- 🤖 **Auto-detection** of npm scripts vs direct commands
+- 🎨 **AI-optimized output** with XML tags
+- ⏱️ **Execution timer** for each command
+- 🌊 **Streaming mode** for long operations
+- 📦 **Cross-platform** (macOS, Linux, Windows)
+- 🚀 **Fast startup** (~10-50ms vs ~100-200ms Node.js)
+- ✅ **CI/CD friendly** (exit codes 0/1)
 
-## Requirements
-
-- Node.js >= 18.0.0
-- npm or yarn
-
-## Examples
-
-### CI/CD Pipeline
+## Build from Source
 
 ```bash
-# Run all quality checks in parallel
-air lint typecheck test:unit test:e2e
+# Requirements: Go 1.25+
+go build -o aifr ./cmd/aifr
 
-# With custom thread count
-air --threads 8 lint typecheck test:unit test:e2e
-
-# Silent mode (exit code only)
-air --output none lint test
+# Cross-platform build
+./scripts/build.sh
 ```
 
-### Development Workflow
+---
 
-```bash
-# Quick check before commit
-air lint:ts lint:eslint test:unit
-
-# With streaming output for long builds
-air --stream build test
-
-# Full output for debugging
-air --output full lint test
-```
-
-### Custom Commands
-
-```bash
-# Run direct commands (not npm scripts)
-air "yarn tsc --noEmit" "eslint ." "vitest run"
-
-# Mix npm scripts and direct commands
-air lint "node scripts/check.js" test
-```
-
-## Development
-
-### Build
-
-```bash
-yarn build
-```
-
-### Test
-
-```bash
-# All tests
-yarn test
-
-# Unit tests only
-yarn lint:test-unit
-
-# E2E tests only
-yarn lint:test-e2e
-```
-
-### Lint & Type Check
-
-```bash
-# Run all quality checks
-yarn lint
-
-# Individual checks
-yarn lint:eslint
-yarn lint:ts
-yarn lint:knip
-```
-
-### Quality Check (Using the Tool Itself)
-
-```bash
-# Run all checks in parallel using ai-friendly-runner
-yarn air lint lint:ts lint:test-unit lint:test-e2e
-```
-
-## Testing
-
-- **Unit Tests**: 100% coverage for core functions
-    - `exec-command.test.ts`: Command execution tests
-    - `run-commands.test.ts`: Parallel execution tests
-    - `reporter.test.ts`: Output formatting tests
-    - `parse-args.test.ts`: CLI argument parsing tests
-
-- **E2E Tests**: Integration tests with real command execution
-    - `integration.e2e.test.ts`: CLI workflow tests
-
-## Exit Codes
-
-- **0**: All commands completed successfully
-- **1**: One or more commands failed or invalid usage
-
-## Error Handling
-
-- **Missing Commands**: Shows error message and usage instructions
-- **Command Failures**: Captures stderr/stdout, marks as failed, continues with other commands
-- **Fatal Errors**: Logs error and exits with code 1
-
-## Performance
-
-Parallel execution significantly faster than sequential:
-
-- **Sequential**: 3 commands × 1s each = ~3 seconds
-- **Parallel** (ai-friendly-runner): 3 commands × 1s each = ~1 second (limited by longest command)
-
-## License
-
-MIT
-
-## Author
-
-Пахомов Андрей Николаевич <andrey.pahomov@ligastavok.ru>
-
-## Repository
-
-<https://github.com/CyberWalrus/ai-friendly-runner>
+**License:** MIT
+**Repository:** [github.com/CyberWalrus/ai-friendly-runner](https://github.com/CyberWalrus/ai-friendly-runner)

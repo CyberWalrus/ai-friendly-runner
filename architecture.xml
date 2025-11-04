@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <architecture>
-	<architecture_metadata version="1" language="ts">
+	<architecture_metadata version="1" language="go">
 		<architecture_type>
-			simple_cli
+			go_cli
 		</architecture_type>
 		<scope>
 			full
@@ -11,54 +11,80 @@
 			ai-friendly-runner
 		</package_name>
 		<source_root>
-			src
+			cmd, internal, pkg
 		</source_root>
 		<workspace_path>
 			/Users/andreypakhomov/github.com/ai-friendly-runner
 		</workspace_path>
 		<entrypoints>
-			<entrypoint path="src/index.ts" purpose="CLI entry point" />
+			<entrypoint path="cmd/aifr/main.go" purpose="CLI application entry point" />
 		</entrypoints>
 		<ruleset>
 			ai-friendly-runner-2025-11
 		</ruleset>
 	</architecture_metadata>
 	<layers>
-		<layer name="model" purpose="Type definitions" order="10">
-			<unit path="src/types.ts" purpose="CommandResult and RunnerOptions types" exports="CommandResult, RunnerOptions" />
+		<layer name="cmd" purpose="Application entry points" order="10">
+			<unit path="cmd/aifr/main.go" purpose="CLI entry point, initializes and runs application" exports="main" />
 		</layer>
-		<layer name="lib" purpose="Core functions" order="20">
-			<unit path="src/exec-command.ts" purpose="Execute single npm command" exports="execCommand" />
-			<unit path="src/run-commands.ts" purpose="Run multiple commands in parallel" exports="runCommands" />
-			<unit path="src/reporter.ts" purpose="Format and print results" exports="printReport" />
-			<unit path="src/run.ts" purpose="Main runner function" exports="run" />
+		<layer name="pkg" purpose="Public packages" order="20">
+			<unit path="pkg/cli/cli.go" purpose="Public CLI interface, argument parsing and execution coordination" exports="Run" />
 		</layer>
-		<layer name="cli" purpose="Command line interface" order="30">
-			<unit path="src/index.ts" purpose="CLI entry point with shebang" exports="none" />
+		<layer name="internal" purpose="Internal implementation packages" order="30">
+			<unit path="internal/types/types.go" purpose="Type definitions (CommandResult, Config, Flags)" exports="CommandResult, Config, Flags" />
+			<unit path="internal/parser/parser.go" purpose="Parse package.json and detect npm scripts" exports="ParsePackageJSON, IsNPMScript" />
+			<unit path="internal/executor/executor.go" purpose="Execute single command via os/exec with timing" exports="Execute" />
+			<unit path="internal/runner/runner.go" purpose="Parallel command execution with goroutines and thread control" exports="Run" />
+			<unit path="internal/reporter/reporter.go" purpose="Format and print results with ANSI colors and XML tags" exports="PrintReport" />
 		</layer>
 	</layers>
-	<tests_directory path="src/__tests__">
-		<test path="src/__tests__/exec-command.test.ts" type="unit" covers="src/exec-command.ts" />
-		<test path="src/__tests__/run-commands.test.ts" type="unit" covers="src/run-commands.ts" />
-		<test path="src/__tests__/reporter.test.ts" type="unit" covers="src/reporter.ts" purpose="Tests for XML tags, command counter, total time in output" />
-		<test path="src/__tests__/integration.e2e.test.ts" type="e2e" covers="src/index.ts" purpose="E2E tests for CLI output with XML tags and timing" />
+	<tests_directory path="tests">
+		<test path="tests/e2e/e2e_test.go" type="e2e" covers="cmd/aifr/main.go" purpose="E2E tests for full CLI workflow with XML tags, timing, and autodetection" />
+		<test path="internal/parser/parser_test.go" type="unit" covers="internal/parser/parser.go" purpose="Unit tests for package.json parsing and npm script detection" />
+		<test path="internal/parser/parser_race_test.go" type="race" covers="internal/parser/parser.go" purpose="Race condition tests for thread-safe package.json caching" />
+		<test path="internal/runner/runner_test.go" type="unit" covers="internal/runner/runner.go" purpose="Unit tests for parallel execution and thread limiting" />
+		<test path="internal/reporter/reporter_test.go" type="unit" covers="internal/reporter/reporter.go" purpose="Unit tests for output formatting with XML tags and summary" />
+		<test path="internal/executor/executor_bench_test.go" type="benchmark" covers="internal/executor/executor.go" purpose="Performance benchmarks for command execution" />
 	</tests_directory>
 	<sections>
 		<package_root>
-			<source_directory name="src">
-				<entrypoint name="index.ts" purpose="CLI entry point с shebang" />
-				<file name="types.ts" role="types" purpose="Типы CommandResult и RunnerOptions" />
-				<file name="exec-command.ts" role="function" purpose="Выполнение одной npm команды" />
-				<file name="run-commands.ts" role="function" purpose="Параллельный запуск команд через Promise.all" />
-				<file name="reporter.ts" role="function" purpose="Форматирование и вывод отчета" />
-				<file name="run.ts" role="function" purpose="Главная функция запуска проверок" />
-				<directory name="__tests__">
-					<test name="exec-command.test.ts" role="unit_test" purpose="Unit-тесты для execCommand" />
-					<test name="run-commands.test.ts" role="unit_test" purpose="Unit-тесты для runCommands" />
-					<test name="reporter.test.ts" role="unit_test" purpose="Unit-тесты для printReport с XML тегами и Total time" />
-					<test name="integration.e2e.test.ts" role="e2e_test" purpose="E2E тесты CLI с проверкой XML тегов, счетчика и timing" />
+			<directory name="cmd">
+				<directory name="aifr">
+					<file name="main.go" role="entrypoint" purpose="CLI entry point, calls cli.Run()" />
 				</directory>
-			</source_directory>
+			</directory>
+			<directory name="pkg">
+				<directory name="cli">
+					<file name="cli.go" role="function" purpose="Public CLI interface with argument parsing" />
+				</directory>
+			</directory>
+			<directory name="internal">
+				<directory name="types">
+					<file name="types.go" role="types" purpose="Go type definitions for CommandResult, Config, Flags" />
+				</directory>
+				<directory name="parser">
+					<file name="parser.go" role="function" purpose="Parse package.json and detect npm scripts with caching" />
+					<test name="parser_test.go" role="unit_test" purpose="Tests for package.json parsing" />
+					<test name="parser_race_test.go" role="race_test" purpose="Race condition tests" />
+				</directory>
+				<directory name="executor">
+					<file name="executor.go" role="function" purpose="Execute commands via os/exec with streaming support" />
+					<test name="executor_bench_test.go" role="benchmark_test" purpose="Performance benchmarks" />
+				</directory>
+				<directory name="runner">
+					<file name="runner.go" role="function" purpose="Parallel execution with goroutines and semaphore" />
+					<test name="runner_test.go" role="unit_test" purpose="Tests for parallel execution" />
+				</directory>
+				<directory name="reporter">
+					<file name="reporter.go" role="function" purpose="Format results with ANSI colors and XML tags" />
+					<test name="reporter_test.go" role="unit_test" purpose="Tests for output formatting" />
+				</directory>
+			</directory>
+			<directory name="tests">
+				<directory name="e2e">
+					<test name="e2e_test.go" role="e2e_test" purpose="End-to-end CLI workflow tests" />
+				</directory>
+			</directory>
 		</package_root>
 	</sections>
 </architecture>
