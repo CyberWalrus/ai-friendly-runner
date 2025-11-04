@@ -1,6 +1,6 @@
 {
     "name": "ai-friendly-runner",
-    "version": "0.3.1",
+    "version": "0.4.0",
     "description": "Fast parallel npm script runner with AI-optimized output (Go implementation)",
     "bin": {
         "aifr": "./bin/aifr",

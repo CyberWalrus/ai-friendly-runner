@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-11-04
+
+<small>04.11.2025 05:04</small>
+
+### Changed
+
+- Улучшена читаемость вывода: автоматическое удаление префиксов запускаторов (yarn, npm, pnpm, bun и др.) из имени команды в статусных строках
+
+## [0.3.1] - 2025-11-04
+
+<small>04.11.2025 04:48</small>
+
+### Added
+
+- Автоматическое создание симлинков для бинарных файлов в `node_modules/.bin` при установке пакета через npm/yarn <a href="https://github.com/CyberWalrus/ai-friendly-runner/commit/a258c2a55b1b76a8b7ade885ad1e68827e2c151b" target="_blank">a258c2a</a>
+
 ## [0.3.0] - 2025-11-04
 
 <small>04.11.2025 04:31</small>
