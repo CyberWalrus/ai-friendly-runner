@@ -18,13 +18,19 @@ var (
 func cleanCommandName(command string) string {
 	prefixes := []string{"yarn", "npm", "pnpm", "bun", "npx", "pnpx", "bunx", "bash", "sh", "zsh", "fish"}
 
+	cleaned := command
 	for _, prefix := range prefixes {
 		if strings.HasPrefix(command, prefix+" ") {
-			return strings.TrimPrefix(command, prefix+" ")
+			cleaned = strings.TrimPrefix(command, prefix+" ")
+			break
 		}
 	}
 
-	return command
+	if strings.HasPrefix(cleaned, "lint:") {
+		cleaned = strings.TrimPrefix(cleaned, "lint:")
+	}
+
+	return cleaned
 }
 
 // PrintReport форматирует и выводит отчет о результатах
@@ -70,7 +76,7 @@ func PrintReport(results []types.CommandResult, flags types.Flags) {
 
 		if result.IsSuccess {
 			if flags.Output == "full" {
-				fmt.Printf("<%s>\n", result.Command)
+				fmt.Printf("<%s>\n", cleanedCommand)
 				fmt.Printf("%s %s%s\n", status, cleanedCommand, timeStr)
 				if result.Stdout != "" {
 					fmt.Print(result.Stdout)
@@ -78,7 +84,7 @@ func PrintReport(results []types.CommandResult, flags types.Flags) {
 				if result.Stderr != "" {
 					fmt.Print(result.Stderr)
 				}
-				fmt.Printf("</%s>\n", result.Command)
+				fmt.Printf("</%s>\n", cleanedCommand)
 			} else {
 				fmt.Printf("%s %s%s\n", status, cleanedCommand, timeStr)
 			}
@@ -107,7 +113,7 @@ func PrintReport(results []types.CommandResult, flags types.Flags) {
 
 		for _, result := range failedResults {
 			cleanedCommand := cleanCommandName(result.Command)
-			fmt.Printf("<%s>\n", result.Command)
+			fmt.Printf("<%s>\n", cleanedCommand)
 			fmt.Printf("%s %s:\n", red("❌"), cleanedCommand)
 			if result.Stderr != "" {
 				fmt.Print(result.Stderr)
@@ -115,7 +121,7 @@ func PrintReport(results []types.CommandResult, flags types.Flags) {
 			if result.Stdout != "" {
 				fmt.Print(result.Stdout)
 			}
-			fmt.Printf("</%s>\n", result.Command)
+			fmt.Printf("</%s>\n", cleanedCommand)
 			fmt.Println()
 		}
 	}
@@ -125,7 +131,11 @@ func PrintReport(results []types.CommandResult, flags types.Flags) {
 
 // PrintRunning выводит список запускаемых команд
 func PrintRunning(commands []string) {
-	fmt.Printf("\nRunning: %s\n", strings.Join(commands, ", "))
+	cleanedCommands := make([]string, len(commands))
+	for i, cmd := range commands {
+		cleanedCommands[i] = cleanCommandName(cmd)
+	}
+	fmt.Printf("\nRunning: %s\n", strings.Join(cleanedCommands, ", "))
 }
 
 // AllPassed проверяет, все ли команды выполнились успешно

@@ -138,12 +138,12 @@ func TestPrintReport_FullOutput(t *testing.T) {
 		PrintReport(results, flags)
 	})
 
-	if !strings.Contains(output, "<yarn test>") {
-		t.Error("Full output should contain XML opening tag with full command")
+	if !strings.Contains(output, "<test>") {
+		t.Error("Full output should contain XML opening tag with cleaned command")
 	}
 
-	if !strings.Contains(output, "</yarn test>") {
-		t.Error("Full output should contain XML closing tag with full command")
+	if !strings.Contains(output, "</test>") {
+		t.Error("Full output should contain XML closing tag with cleaned command")
 	}
 
 	if !strings.Contains(output, "test") {
@@ -202,9 +202,9 @@ func TestCleanCommandName(t *testing.T) {
 		want    string
 	}{
 		{
-			name:    "yarn префикс",
+			name:    "yarn префикс с lint:",
 			command: "yarn lint:eslint",
-			want:    "lint:eslint",
+			want:    "eslint",
 		},
 		{
 			name:    "npm префикс",
@@ -257,9 +257,24 @@ func TestCleanCommandName(t *testing.T) {
 			want:    "script.fish",
 		},
 		{
-			name:    "без префикса",
+			name:    "без префикса, но с lint:",
 			command: "lint:eslint",
-			want:    "lint:eslint",
+			want:    "eslint",
+		},
+		{
+			name:    "yarn без аргументов",
+			command: "yarn",
+			want:    "yarn",
+		},
+		{
+			name:    "yarn lint:ts",
+			command: "yarn lint:ts",
+			want:    "ts",
+		},
+		{
+			name:    "yarn lint:test-unit",
+			command: "yarn lint:test-unit",
+			want:    "test-unit",
 		},
 		{
 			name:    "префикс без пробела",
@@ -280,6 +295,71 @@ func TestCleanCommandName(t *testing.T) {
 				t.Errorf("cleanCommandName(%q) = %q, want %q", tt.command, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestPrintReport_FailedCommandWithLintPrefix(t *testing.T) {
+	results := []types.CommandResult{
+		{Command: "yarn lint:eslint", IsSuccess: false, Duration: 50 * time.Millisecond, Stderr: "error occurred"},
+	}
+	flags := types.Flags{
+		Output:      "errors",
+		ShowSummary: false,
+		ShowTime:    false,
+	}
+
+	output := captureOutput(func() {
+		PrintReport(results, flags)
+	})
+
+	if !strings.Contains(output, "<eslint>") {
+		t.Error("Output should contain XML opening tag with cleaned command (without lint: prefix)")
+	}
+
+	if !strings.Contains(output, "</eslint>") {
+		t.Error("Output should contain XML closing tag with cleaned command (without lint: prefix)")
+	}
+
+	if strings.Contains(output, "<lint:") || strings.Contains(output, "</lint:") {
+		t.Error("Tags should not contain 'lint:' prefix")
+	}
+
+	if strings.Contains(output, "<yarn lint:") || strings.Contains(output, "</yarn lint:") {
+		t.Error("Tags should not contain full command with runner and lint: prefix")
+	}
+}
+
+func TestPrintRunning(t *testing.T) {
+	commands := []string{"yarn lint:eslint", "yarn lint:ts", "yarn lint:knip"}
+
+	output := captureOutput(func() {
+		PrintRunning(commands)
+	})
+
+	expected := "Running: eslint, ts, knip"
+	if !strings.Contains(output, expected) {
+		t.Errorf("PrintRunning() output should contain %q, got: %q", expected, output)
+	}
+
+	if strings.Contains(output, "lint:") {
+		t.Error("PrintRunning() output should not contain 'lint:' prefix")
+	}
+
+	if strings.Contains(output, "yarn") {
+		t.Error("PrintRunning() output should not contain runner prefix 'yarn'")
+	}
+}
+
+func TestPrintRunning_WithRunnerOnly(t *testing.T) {
+	commands := []string{"yarn"}
+
+	output := captureOutput(func() {
+		PrintRunning(commands)
+	})
+
+	expected := "Running: yarn"
+	if !strings.Contains(output, expected) {
+		t.Errorf("PrintRunning() output should contain %q when command is only runner, got: %q", expected, output)
 	}
 }
 
