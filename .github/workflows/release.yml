@@ -1,0 +1,74 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*.*.*"
+
+permissions:
+    contents: write
+
+jobs:
+    build-and-publish:
+        name: Build and Publish
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-go@v5
+              with:
+                  go-version: "1.25"
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+                  registry-url: "https://registry.npmjs.org"
+
+            - name: Extract version from tag
+              id: version
+              run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+            - name: Build binaries
+              run: |
+                  chmod +x ./scripts/build.sh
+                  ./scripts/build.sh ${{ steps.version.outputs.VERSION }}
+
+            - name: Update package.json version
+              run: |
+                  npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
+
+            - name: Publish to npm
+              run: npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v1
+              with:
+                  files: binaries/*
+                  body: |
+                      ## ai-friendly-runner v${{ steps.version.outputs.VERSION }}
+
+                      Fast parallel npm script runner with AI-optimized output.
+
+                      ### Installation
+
+                      ```bash
+                      npm install -g ai-friendly-runner@${{ steps.version.outputs.VERSION }}
+                      ```
+
+                      ### Binaries
+
+                      Download pre-built binaries for your platform:
+
+                      - macOS (Intel): `aifr-darwin-amd64`
+                      - macOS (Apple Silicon): `aifr-darwin-arm64`
+                      - Linux (x64): `aifr-linux-amd64`
+                      - Linux (ARM): `aifr-linux-arm64`
+                      - Windows (x64): `aifr-windows-amd64.exe`
+
+                      ### Changes
+
+                      See [CHANGELOG](https://github.com/CyberWalrus/ai-friendly-runner/blob/main/CHANGELOG.md) for details.
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
