@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Улучшена читаемость вывода: автоматическое удаление префиксов запускаторов (yarn, npm, pnpm, bun и др.) из имени команды в статусных строках
+- Улучшена читаемость вывода: автоматическое удаление префиксов запускаторов (yarn, npm, pnpm, bun, npx и др.) из имени команды в статусных строках <a href="https://github.com/CyberWalrus/ai-friendly-runner/commit/bbe7aa88979e0874dfa3438ba9ce57cf01e353c6" target="_blank">bbe7aa8</a> <a href="https://github.com/CyberWalrus/ai-friendly-runner/commit/bdae214f8ac04c6b8d80c0408068c537ad5da8c5" target="_blank">bdae214</a>
 
 ## [0.3.1] - 2025-11-04
 
