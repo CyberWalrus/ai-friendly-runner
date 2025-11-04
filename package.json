@@ -10,6 +10,7 @@
     "scripts": {
         "build": "./scripts/build.sh",
         "postinstall": "node scripts/install.cjs",
+        "format": "go fmt ./...",
         "test": "go test ./...",
         "test:unit": "go test ./tests/unit/...",
         "test:e2e": "go test ./tests/e2e/...",
