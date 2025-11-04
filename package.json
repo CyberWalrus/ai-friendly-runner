@@ -1,61 +1,55 @@
 {
     "name": "ai-friendly-runner",
-    "version": "0.1.2",
-    "description": "Parallel npm script runner with AI-optimized output format",
+    "version": "0.2.0",
+    "description": "Fast parallel npm script runner with AI-optimized output (Go implementation)",
     "bin": {
-        "air": "./dist/index.js",
-        "ai-runner": "./dist/index.js"
+        "aifr": "./bin/aifr",
+        "ai-friendly-runner": "./bin/aifr"
     },
     "type": "module",
     "scripts": {
-        "build": "tsup",
-        "lint": "tsx ./src/index.ts lint:eslint lint:ts lint:knip lint:test-unit lint:test-e2e",
-        "lint:test-unit": "cross-env NODE_ENV=test TZ=Europe/Moscow vitest --run --exclude '**/*.e2e.test.ts'",
-        "lint:test-e2e": "yarn build &&cross-env NODE_ENV=test TZ=Europe/Moscow TEST_TYPE=e2e vitest --run",
-        "lint:ts": "tsc --noEmit",
-        "lint:eslint": "yarn eslint --fix --report-unused-disable-directives-severity off src",
-        "lint:knip": "knip --no-progress --include exports,files",
-        "test:pass-fast": "node -e 'console.log(\"test passed\")'",
-        "test:fail-fast": "node -e 'console.error(\"test failed\"); process.exit(1)'",
-        "test:pass-slow": "node -e 'setTimeout(() => console.log(\"slow test passed\"), 50)'"
+        "build": "./scripts/build.sh",
+        "postinstall": "node scripts/install.cjs",
+        "test": "go test ./...",
+        "test:unit": "go test ./tests/unit/...",
+        "test:e2e": "go test ./tests/e2e/...",
+        "prepublishOnly": "npm run build"
     },
     "repository": {
         "type": "git",
         "url": "git@github.com:CyberWalrus/ai-friendly-runner.git"
     },
     "keywords": [
-        "npm",
+        "cli",
         "runner",
         "parallel",
+        "npm",
+        "scripts",
         "ai",
-        "quality",
-        "check",
-        "lint",
-        "test",
+        "golang",
+        "fast",
         "ci-cd",
         "automation"
     ],
     "author": "Пахомов Андрей Николаевич <andrey.pahomov@ligastavok.ru>",
     "license": "MIT",
-    "dependencies": {
-        "p-limit": "^6.1.0",
-        "picocolors": "^1.1.1"
-    },
-    "devDependencies": {
-        "@types/node": "24.10.0",
-        "cross-env": "10.1.0",
-        "eslint-walrus-config": "1.1.0",
-        "knip": "5.67.1",
-        "tsup": "8.5.0",
-        "tsx": "4.20.6",
-        "typescript": "5.9.3",
-        "vitest": "4.0.6"
-    },
+    "dependencies": {},
     "engines": {
         "node": ">=18.0.0"
     },
+    "os": [
+        "darwin",
+        "linux",
+        "win32"
+    ],
+    "cpu": [
+        "x64",
+        "arm64"
+    ],
     "files": [
-        "dist"
+        "binaries/",
+        "bin/",
+        "scripts/install.cjs"
     ],
     "publishConfig": {
         "access": "public"
