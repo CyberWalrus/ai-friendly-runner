@@ -48,6 +48,30 @@ function install() {
         if (!isWindows) {
             fs.chmodSync(targetPath, '755');
         }
+
+        const packageRoot = path.resolve(__dirname, '..');
+
+        if (packageRoot.includes('node_modules')) {
+            const nodeModulesPath = packageRoot.substring(0, packageRoot.indexOf('node_modules') + 'node_modules'.length);
+            const projectRoot = path.dirname(nodeModulesPath);
+            const nodeModulesBin = path.join(projectRoot, 'node_modules', '.bin');
+            const symlinkPath = path.join(nodeModulesBin, binaryName);
+
+            if (!fs.existsSync(symlinkPath)) {
+                try {
+                    if (!fs.existsSync(nodeModulesBin)) {
+                        fs.mkdirSync(nodeModulesBin, { recursive: true });
+                    }
+
+                    const absoluteTargetPath = path.resolve(targetPath);
+                    const relativeTargetPath = path.relative(nodeModulesBin, absoluteTargetPath);
+                    fs.symlinkSync(relativeTargetPath, symlinkPath, 'file');
+                } catch (error) {
+                    // Игнорируем ошибки создания симлинка (может уже существовать или нет прав)
+                }
+            }
+        }
+
         console.log(`✅ Installed aifr for ${process.platform}-${process.arch}`);
     } catch (error) {
         console.error(`❌ Installation failed: ${error.message}`);

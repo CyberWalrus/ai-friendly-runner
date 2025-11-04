@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-11-04
+
+<small>04.11.2025 04:31</small>
+
+### Added
+
+- GitHub Actions workflows для CI/CD (build-and-test.yml, release.yml) <a href="https://github.com/CyberWalrus/ai-friendly-runner/commit/00e5c6189197b88b5d0185b1aa0cfb2c2a7dcc02" target="_blank">00e5c61</a>
+- CHANGELOG.md для документирования изменений <a href="https://github.com/CyberWalrus/ai-friendly-runner/commit/89ad7db4d6fdef69350ad16c522165a54169b41b" target="_blank">89ad7db</a>
+
+### Changed
+
+- Обновлена конфигурация GitHub Actions для извлечения версии из package.json и запуска юнит-тестов из директории internal <a href="https://github.com/CyberWalrus/ai-friendly-runner/commit/927630d1b0df2ea40e065f57296d0fce7d0690be" target="_blank">927630d</a> <a href="https://github.com/CyberWalrus/ai-friendly-runner/commit/88f684f0ccbacff783596c7d1fa44b52f0aefd1c" target="_blank">88f684f</a>
+- CHANGELOG переведен на английский язык <a href="https://github.com/CyberWalrus/ai-friendly-runner/commit/a2fd66256a3fd079771d81be02c07758aa7bbb89" target="_blank">a2fd662</a>
+- Обновлена документация для Go реализации <a href="https://github.com/CyberWalrus/ai-friendly-runner/commit/40c15d37f6a0b8c2e529447384053a39dfd74acb" target="_blank">40c15d3</a>
+
 ## [0.2.0] - 2025-11-04
 
 ### Added
