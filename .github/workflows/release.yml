@@ -1,74 +1,95 @@
 name: Release
 
 on:
-    push:
-        tags:
-            - "v*.*.*"
+  push:
+    branches:
+      - main
 
 permissions:
-    contents: write
+  contents: write
 
 jobs:
-    build-and-publish:
-        name: Build and Publish
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+  build-and-publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            - uses: actions/setup-go@v5
-              with:
-                  go-version: "1.25"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: "18"
-                  registry-url: "https://registry.npmjs.org"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
 
-            - name: Extract version from tag
-              id: version
-              run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - name: Extract version from package.json
+        id: version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-            - name: Build binaries
-              run: |
-                  chmod +x ./scripts/build.sh
-                  ./scripts/build.sh ${{ steps.version.outputs.VERSION }}
+      - name: Build binaries
+        run: |
+          chmod +x ./scripts/build.sh
+          ./scripts/build.sh ${{ steps.version.outputs.VERSION }}
 
-            - name: Update package.json version
-              run: |
-                  npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
+      - name: Verify binaries
+        run: |
+          echo "=== Built binaries ==="
+          ls -lh binaries/
+          echo ""
+          echo "=== Checking all 5 binaries exist ==="
+          for binary in aifr-darwin-amd64 aifr-darwin-arm64 aifr-linux-amd64 aifr-linux-arm64 aifr-windows-amd64.exe; do
+            if [ ! -f "binaries/$binary" ]; then
+              echo "❌ Missing binary: $binary"
+              exit 1
+            fi
+            echo "✅ Found: $binary"
+          done
 
-            - name: Publish to npm
-              run: npm publish
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Show package info
+        run: |
+          echo "=== Publishing version ==="
+          echo "Version: ${{ steps.version.outputs.VERSION }}"
+          echo "Package: ai-friendly-runner"
+          echo ""
+          echo "=== Files to be published ==="
+          node -p "require('./package.json').files"
 
-            - name: Create GitHub Release
-              uses: softprops/action-gh-release@v1
-              with:
-                  files: binaries/*
-                  body: |
-                      ## ai-friendly-runner v${{ steps.version.outputs.VERSION }}
+      - name: Publish to npm
+        run: |
+          echo "📦 Publishing ai-friendly-runner@${{ steps.version.outputs.VERSION }}"
+          npm publish --verbose
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-                      Fast parallel npm script runner with AI-optimized output.
+      - name: Create GitHub Release
+        run: |
+          gh release create "v${{ steps.version.outputs.VERSION }}" \
+            binaries/* \
+            --title "ai-friendly-runner v${{ steps.version.outputs.VERSION }}" \
+            --notes "## ai-friendly-runner v${{ steps.version.outputs.VERSION }}
 
-                      ### Installation
+          Fast parallel npm script runner with AI-optimized output.
 
-                      ```bash
-                      npm install -g ai-friendly-runner@${{ steps.version.outputs.VERSION }}
-                      ```
+          ### Installation
 
-                      ### Binaries
+          \`\`\`bash
+          npm install -g ai-friendly-runner@${{ steps.version.outputs.VERSION }}
+          \`\`\`
 
-                      Download pre-built binaries for your platform:
+          ### Binaries
 
-                      - macOS (Intel): `aifr-darwin-amd64`
-                      - macOS (Apple Silicon): `aifr-darwin-arm64`
-                      - Linux (x64): `aifr-linux-amd64`
-                      - Linux (ARM): `aifr-linux-arm64`
-                      - Windows (x64): `aifr-windows-amd64.exe`
+          Download pre-built binaries for your platform:
 
-                      ### Changes
+          - macOS (Intel): \`aifr-darwin-amd64\`
+          - macOS (Apple Silicon): \`aifr-darwin-arm64\`
+          - Linux (x64): \`aifr-linux-amd64\`
+          - Linux (ARM): \`aifr-linux-arm64\`
+          - Windows (x64): \`aifr-windows-amd64.exe\`
 
-                      See [CHANGELOG](https://github.com/CyberWalrus/ai-friendly-runner/blob/main/CHANGELOG.md) for details.
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ### Changes
+
+          See [CHANGELOG](https://github.com/CyberWalrus/ai-friendly-runner/blob/main/CHANGELOG.md) for details."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
