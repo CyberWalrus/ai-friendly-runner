@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-11-04
+
+<small>04.11.2025 16:34</small>
+
+### Changed
+
+- Улучшена читаемость вывода команд: добавлена автоматическая очистка префикса `lint:` из имен команд (например, `yarn lint:eslint` → `eslint` в XML-тегах и статусных строках) <a href="https://github.com/CyberWalrus/ai-friendly-runner/commit/88a6c42691b6f99df20dc3abaa9c355acd79573e" target="_blank">88a6c42</a>
+
 ## [0.4.0] - 2025-11-04
 
 <small>04.11.2025 05:04</small>
