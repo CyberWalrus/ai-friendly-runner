@@ -14,6 +14,19 @@ var (
 	dim   = color.New(color.Faint).SprintFunc()
 )
 
+// cleanCommandName удаляет популярные префиксы запускаторов из имени команды
+func cleanCommandName(command string) string {
+	prefixes := []string{"yarn", "npm", "pnpm", "bun", "npx", "pnpx", "bunx", "bash", "sh", "zsh", "fish"}
+
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(command, prefix+" ") {
+			return strings.TrimPrefix(command, prefix+" ")
+		}
+	}
+
+	return command
+}
+
 // PrintReport форматирует и выводит отчет о результатах
 func PrintReport(results []types.CommandResult, flags types.Flags) {
 	if len(results) == 0 {
@@ -53,10 +66,12 @@ func PrintReport(results []types.CommandResult, flags types.Flags) {
 			timeStr = fmt.Sprintf(" %s", dim(fmt.Sprintf("(%dms)", result.Duration.Milliseconds())))
 		}
 
+		cleanedCommand := cleanCommandName(result.Command)
+
 		if result.IsSuccess {
 			if flags.Output == "full" {
 				fmt.Printf("<%s>\n", result.Command)
-				fmt.Printf("%s %s%s\n", status, result.Command, timeStr)
+				fmt.Printf("%s %s%s\n", status, cleanedCommand, timeStr)
 				if result.Stdout != "" {
 					fmt.Print(result.Stdout)
 				}
@@ -65,10 +80,10 @@ func PrintReport(results []types.CommandResult, flags types.Flags) {
 				}
 				fmt.Printf("</%s>\n", result.Command)
 			} else {
-				fmt.Printf("%s %s%s\n", status, result.Command, timeStr)
+				fmt.Printf("%s %s%s\n", status, cleanedCommand, timeStr)
 			}
 		} else {
-			fmt.Printf("%s %s%s\n", status, result.Command, timeStr)
+			fmt.Printf("%s %s%s\n", status, cleanedCommand, timeStr)
 		}
 	}
 
@@ -91,8 +106,9 @@ func PrintReport(results []types.CommandResult, flags types.Flags) {
 		fmt.Println()
 
 		for _, result := range failedResults {
+			cleanedCommand := cleanCommandName(result.Command)
 			fmt.Printf("<%s>\n", result.Command)
-			fmt.Printf("%s %s:\n", red("❌"), result.Command)
+			fmt.Printf("%s %s:\n", red("❌"), cleanedCommand)
 			if result.Stderr != "" {
 				fmt.Print(result.Stderr)
 			}
