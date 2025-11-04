@@ -56,7 +56,7 @@ func TestPrintReport_NoneOutput(t *testing.T) {
 
 func TestPrintReport_SuccessCommand(t *testing.T) {
 	results := []types.CommandResult{
-		{Command: "test", IsSuccess: true, Duration: 100 * time.Millisecond, Stdout: "test passed"},
+		{Command: "yarn test", IsSuccess: true, Duration: 100 * time.Millisecond, Stdout: "test passed"},
 	}
 	flags := types.Flags{
 		Output:      "errors",
@@ -73,7 +73,11 @@ func TestPrintReport_SuccessCommand(t *testing.T) {
 	}
 
 	if !strings.Contains(output, "test") {
-		t.Error("Output should contain command name")
+		t.Error("Output should contain cleaned command name")
+	}
+
+	if strings.Contains(output, "yarn test") && !strings.Contains(output, "<yarn test>") {
+		t.Error("Status line should contain cleaned command name, not full command")
 	}
 
 	if !strings.Contains(output, "100ms") {
@@ -122,7 +126,7 @@ func TestPrintReport_FailedCommand(t *testing.T) {
 
 func TestPrintReport_FullOutput(t *testing.T) {
 	results := []types.CommandResult{
-		{Command: "test", IsSuccess: true, Duration: 100 * time.Millisecond, Stdout: "all tests passed"},
+		{Command: "yarn test", IsSuccess: true, Duration: 100 * time.Millisecond, Stdout: "all tests passed"},
 	}
 	flags := types.Flags{
 		Output:      "full",
@@ -134,12 +138,20 @@ func TestPrintReport_FullOutput(t *testing.T) {
 		PrintReport(results, flags)
 	})
 
-	if !strings.Contains(output, "<test>") {
-		t.Error("Full output should contain XML opening tag for success")
+	if !strings.Contains(output, "<yarn test>") {
+		t.Error("Full output should contain XML opening tag with full command")
 	}
 
-	if !strings.Contains(output, "</test>") {
-		t.Error("Full output should contain XML closing tag for success")
+	if !strings.Contains(output, "</yarn test>") {
+		t.Error("Full output should contain XML closing tag with full command")
+	}
+
+	if !strings.Contains(output, "test") {
+		t.Error("Full output should contain cleaned command name in status line")
+	}
+
+	if strings.Contains(output, "✅ yarn test") {
+		t.Error("Status line should contain cleaned command name, not full command")
 	}
 
 	if !strings.Contains(output, "all tests passed") {
@@ -180,6 +192,94 @@ func TestPrintReport_NoSummary(t *testing.T) {
 
 	if strings.Contains(output, "passed") || strings.Contains(output, "Summary") {
 		t.Error("Output should not contain summary when ShowSummary is false")
+	}
+}
+
+func TestCleanCommandName(t *testing.T) {
+	tests := []struct {
+		name    string
+		command string
+		want    string
+	}{
+		{
+			name:    "yarn префикс",
+			command: "yarn lint:eslint",
+			want:    "lint:eslint",
+		},
+		{
+			name:    "npm префикс",
+			command: "npm run test",
+			want:    "run test",
+		},
+		{
+			name:    "pnpm префикс",
+			command: "pnpm lint",
+			want:    "lint",
+		},
+		{
+			name:    "bun префикс",
+			command: "bun test",
+			want:    "test",
+		},
+		{
+			name:    "npx префикс",
+			command: "npx eslint .",
+			want:    "eslint .",
+		},
+		{
+			name:    "pnpx префикс",
+			command: "pnpx tsx script.ts",
+			want:    "tsx script.ts",
+		},
+		{
+			name:    "bunx префикс",
+			command: "bunx jest",
+			want:    "jest",
+		},
+		{
+			name:    "bash префикс",
+			command: "bash script.sh",
+			want:    "script.sh",
+		},
+		{
+			name:    "sh префикс",
+			command: "sh ./run.sh",
+			want:    "./run.sh",
+		},
+		{
+			name:    "zsh префикс",
+			command: "zsh script.zsh",
+			want:    "script.zsh",
+		},
+		{
+			name:    "fish префикс",
+			command: "fish script.fish",
+			want:    "script.fish",
+		},
+		{
+			name:    "без префикса",
+			command: "lint:eslint",
+			want:    "lint:eslint",
+		},
+		{
+			name:    "префикс без пробела",
+			command: "yarnlint",
+			want:    "yarnlint",
+		},
+		{
+			name:    "команда начинается с префикса но не является им",
+			command: "yarnlike command",
+			want:    "yarnlike command",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := cleanCommandName(tt.command)
+			if got != tt.want {
+				t.Errorf("cleanCommandName(%q) = %q, want %q", tt.command, got, tt.want)
+			}
+		})
 	}
 }
 
