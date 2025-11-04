@@ -18,19 +18,13 @@ var (
 func cleanCommandName(command string) string {
 	prefixes := []string{"yarn", "npm", "pnpm", "bun", "npx", "pnpx", "bunx", "bash", "sh", "zsh", "fish"}
 
-	cleaned := command
 	for _, prefix := range prefixes {
 		if strings.HasPrefix(command, prefix+" ") {
-			cleaned = strings.TrimPrefix(command, prefix+" ")
-			break
+			return strings.TrimPrefix(command, prefix+" ")
 		}
 	}
 
-	if strings.HasPrefix(cleaned, "lint:") {
-		cleaned = strings.TrimPrefix(cleaned, "lint:")
-	}
-
-	return cleaned
+	return command
 }
 
 // PrintReport форматирует и выводит отчет о результатах

@@ -204,7 +204,7 @@ func TestCleanCommandName(t *testing.T) {
 		{
 			name:    "yarn префикс с lint:",
 			command: "yarn lint:eslint",
-			want:    "eslint",
+			want:    "lint:eslint",
 		},
 		{
 			name:    "npm префикс",
@@ -259,7 +259,7 @@ func TestCleanCommandName(t *testing.T) {
 		{
 			name:    "без префикса, но с lint:",
 			command: "lint:eslint",
-			want:    "eslint",
+			want:    "lint:eslint",
 		},
 		{
 			name:    "yarn без аргументов",
@@ -269,12 +269,12 @@ func TestCleanCommandName(t *testing.T) {
 		{
 			name:    "yarn lint:ts",
 			command: "yarn lint:ts",
-			want:    "ts",
+			want:    "lint:ts",
 		},
 		{
 			name:    "yarn lint:test-unit",
 			command: "yarn lint:test-unit",
-			want:    "test-unit",
+			want:    "lint:test-unit",
 		},
 		{
 			name:    "префикс без пробела",
@@ -312,20 +312,16 @@ func TestPrintReport_FailedCommandWithLintPrefix(t *testing.T) {
 		PrintReport(results, flags)
 	})
 
-	if !strings.Contains(output, "<eslint>") {
-		t.Error("Output should contain XML opening tag with cleaned command (without lint: prefix)")
+	if !strings.Contains(output, "<lint:eslint>") {
+		t.Error("Output should contain XML opening tag with cleaned command (without runner prefix)")
 	}
 
-	if !strings.Contains(output, "</eslint>") {
-		t.Error("Output should contain XML closing tag with cleaned command (without lint: prefix)")
-	}
-
-	if strings.Contains(output, "<lint:") || strings.Contains(output, "</lint:") {
-		t.Error("Tags should not contain 'lint:' prefix")
+	if !strings.Contains(output, "</lint:eslint>") {
+		t.Error("Output should contain XML closing tag with cleaned command (without runner prefix)")
 	}
 
 	if strings.Contains(output, "<yarn lint:") || strings.Contains(output, "</yarn lint:") {
-		t.Error("Tags should not contain full command with runner and lint: prefix")
+		t.Error("Tags should not contain full command with runner prefix")
 	}
 }
 
@@ -336,13 +332,9 @@ func TestPrintRunning(t *testing.T) {
 		PrintRunning(commands)
 	})
 
-	expected := "Running: eslint, ts, knip"
+	expected := "Running: lint:eslint, lint:ts, lint:knip"
 	if !strings.Contains(output, expected) {
 		t.Errorf("PrintRunning() output should contain %q, got: %q", expected, output)
-	}
-
-	if strings.Contains(output, "lint:") {
-		t.Error("PrintRunning() output should not contain 'lint:' prefix")
 	}
 
 	if strings.Contains(output, "yarn") {
